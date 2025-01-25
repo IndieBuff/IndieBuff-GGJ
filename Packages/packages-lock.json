@@ -1,5 +1,14 @@
 {
   "dependencies": {
+    "com.indiebuff.aiassistant": {
+      "version": "https://github.com/IndieBuff/IndieBuff-Unity-Package.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.2.1"
+      },
+      "hash": "89d7711cd335e2b0f66122387f9e2b453325bcee"
+    },
     "com.unity.ai.navigation": {
       "version": "2.0.5",
       "depth": 0,
@@ -90,6 +99,13 @@
     "com.unity.nuget.mono-cecil": {
       "version": "1.11.4",
       "depth": 3,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.nuget.newtonsoft-json": {
+      "version": "3.2.1",
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"

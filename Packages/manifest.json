@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.indiebuff.aiassistant": "https://github.com/IndieBuff/IndieBuff-Unity-Package.git",
     "com.unity.ai.navigation": "2.0.5",
     "com.unity.collab-proxy": "2.6.0",
     "com.unity.ide.rider": "3.0.31",
