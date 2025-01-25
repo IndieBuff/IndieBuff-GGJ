@@ -25,6 +25,10 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float jumpCooldown = 1.5f;
     [SerializeField] private float minSpeedForDive = 5f;
 
+    [Header("Slope Handling")]
+    public float maxSlopeAngle;
+    private RaycastHit slopeHit;
+
     private Rigidbody rb;
     private Camera mainCamera;
     private float horizontalInput;
@@ -218,6 +222,22 @@ public class PlayerMovement : MonoBehaviour
     public float GetCurrentSpeed()
     {
         return currentSpeed;
+    }
+
+    private bool OnSlope()
+    {
+        if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, groundCheckDistance))
+        {
+            float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
+            return angle < maxSlopeAngle && angle != 0;
+        }
+
+        return false;
+    }
+
+    private Vector3 GetSlopeMoveDirection()
+    {
+        return Vector3.ProjectOnPlane(currentVelocityDir, slopeHit.normal).normalized;
     }
 
 }
