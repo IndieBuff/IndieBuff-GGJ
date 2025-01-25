@@ -8,7 +8,7 @@ public class PlayerMovement : MonoBehaviour
 
     private Rigidbody rb;
     private Camera mainCamera;
-    private Vector3 movement;
+    private float horizontalInput;
 
     private void Start()
     {
@@ -34,39 +34,41 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        float horizontalInput = Input.GetAxisRaw("Horizontal");
-        float verticalInput = Input.GetAxisRaw("Vertical");
+        // Capture horizontal input in Update for responsiveness
+        horizontalInput = Input.GetAxisRaw("Horizontal");
+    }
 
+    private void FixedUpdate()
+    {
+        // Get camera directions each physics step to handle camera movement correctly
         Vector3 cameraForward = mainCamera.transform.forward;
         Vector3 cameraRight = mainCamera.transform.right;
 
+        // Flatten directions to horizontal plane
         cameraForward.y = 0;
         cameraRight.y = 0;
         cameraForward.Normalize();
         cameraRight.Normalize();
 
-        movement = cameraRight * horizontalInput + cameraForward * verticalInput;
+        // Create movement vector (forward + lateral movement)
+        Vector3 movement = cameraForward + (cameraRight * horizontalInput * 0.5f);
 
+        // Normalize to prevent diagonal speed boost
         if (movement.magnitude > 1f)
         {
             movement.Normalize();
         }
-    }
 
-    private void FixedUpdate()
-    {
+        // Apply movement
         rb.MovePosition(rb.position + moveSpeed * Time.fixedDeltaTime * movement);
 
-        if (movement != Vector3.zero)
-        {
-            Quaternion targetRotation = Quaternion.LookRotation(movement);
-            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime));
-        }
+        // Rotate player to face camera's forward direction
+        Quaternion targetRotation = Quaternion.LookRotation(cameraForward);
+        rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime));
     }
 
     private void OnDisable()
     {
-
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
     }
