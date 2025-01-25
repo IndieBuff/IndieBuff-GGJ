@@ -7,7 +7,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float maxSpeed = 30f;
     [SerializeField] private float speedDecayRate = 0.1f;
     [SerializeField] private float accelerationCurveExponent = 2f;
-    [SerializeField] private float groundSpeedDecayMultiplier = 0.2f; // Lower value = less speed loss on ground
+    [SerializeField] private float airSpeedDecayMultiplier = 0.2f; // Lower value = less speed loss on ground
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private float groundCheckDistance = 0.1f;
 
@@ -35,8 +35,6 @@ public class PlayerMovement : MonoBehaviour
     private bool isDiving;
     private float currentSpeed;
     private Vector3 currentVelocityDir;
-
-
 
 
     private void Start()
@@ -163,7 +161,7 @@ public class PlayerMovement : MonoBehaviour
 
 
         // Only decay speed when in air, and decay much slower when on ground
-        float actualDecayRate = isGrounded ? speedDecayRate * groundSpeedDecayMultiplier : speedDecayRate;
+        float actualDecayRate = !isGrounded ? speedDecayRate : speedDecayRate;
         currentSpeed = Mathf.Max(0, currentSpeed - (actualDecayRate * Time.fixedDeltaTime));
 
 
@@ -205,10 +203,6 @@ public class PlayerMovement : MonoBehaviour
             targetVelocity.y = rb.linearVelocity.y;
             rb.linearVelocity = targetVelocity;
         }
-
-
-
-
 
         // Rotate player to face camera's forward direction
         Quaternion targetRotation = Quaternion.LookRotation(cameraForward);
