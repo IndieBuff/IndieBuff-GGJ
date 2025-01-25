@@ -3,19 +3,27 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement Settings")]
-    [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float rotationSpeed = 5f;
+    [SerializeField] private float maxSpeed = 30f;
+    [SerializeField] private float speedDecayRate = 0.1f;
+    [SerializeField] private float accelerationCurveExponent = 2f;
+    [SerializeField] private float groundSpeedDecayMultiplier = 0.2f; // Lower value = less speed loss on ground
+    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private float groundCheckDistance = 0.1f;
+
 
     [Header("Blast Pack Settings")]
-    [SerializeField] private float minBlastForce = 5f;
-    [SerializeField] private float maxBlastForce = 20f;
+    [SerializeField] private float minBlastForce = 10f;
+    [SerializeField] private float maxBlastForce = 25f;
+
     [SerializeField] private float maxChargeTime = 1.5f;
     [SerializeField] private float upwardForceRatio = 0.6f;
     [SerializeField] private float forwardForceRatio = 1f;
 
     [Header("Dive Settings")]
-    [SerializeField] private float diveForce = 20f;
+    [SerializeField] private float diveForce = 30f;
     [SerializeField] private float jumpCooldown = 1.5f;
+    [SerializeField] private float minSpeedForDive = 5f;
 
     private Rigidbody rb;
     private Camera mainCamera;
@@ -25,6 +33,9 @@ public class PlayerMovement : MonoBehaviour
     private bool isCharging;
     private float lastJumpTime;
     private bool isDiving;
+    private float currentSpeed;
+    private Vector3 currentVelocityDir;
+
 
 
 
@@ -109,8 +120,13 @@ public class PlayerMovement : MonoBehaviour
         Vector3 forwardForce = cameraForward * (totalForce * forwardForceRatio);
         Vector3 upwardForce = Vector3.up * (totalForce * upwardForceRatio);
 
-        rb.AddForce(forwardForce + upwardForce, ForceMode.Impulse);
+        // Calculate boost based on current speed
+        float speedRatio = currentSpeed / maxSpeed;
+        float boostMultiplier = 1f + (speedRatio * 0.5f); // Up to 50% extra force at max speed
+
+        rb.AddForce((forwardForce + upwardForce) * boostMultiplier, ForceMode.Impulse);
         lastJumpTime = Time.time;
+
 
     }
 
@@ -136,14 +152,49 @@ public class PlayerMovement : MonoBehaviour
             movement.Normalize();
         }
 
-        // Apply movement
-        rb.MovePosition(rb.position + moveSpeed * Time.fixedDeltaTime * movement);
+        // Calculate current speed and direction
+        Vector3 horizontalVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
+        currentSpeed = horizontalVelocity.magnitude;
+        currentVelocityDir = currentSpeed > 0.1f ? horizontalVelocity.normalized : movement.normalized;
 
-        // Apply dive force if diving
-        if (isDiving)
+        // Check if we're on the ground
+        bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
+
+        // Only decay speed when in air, and decay much slower when on ground
+        float actualDecayRate = isGrounded ? speedDecayRate * groundSpeedDecayMultiplier : speedDecayRate;
+        currentSpeed = Mathf.Max(0, currentSpeed - (actualDecayRate * Time.fixedDeltaTime));
+
+
+        // Calculate acceleration factor (gets smaller as we approach max speed)
+        float speedRatio = currentSpeed / maxSpeed;
+        float accelerationFactor = 1f - Mathf.Pow(speedRatio, accelerationCurveExponent);
+
+        // Apply movement based on current speed and new input
+        Vector3 targetVelocity = currentVelocityDir * currentSpeed;
+
+        // Blend between current direction and input direction
+        if (movement.magnitude > 0.1f)
         {
-            rb.AddForce(Vector3.down * diveForce, ForceMode.Force);
+            targetVelocity = Vector3.Lerp(targetVelocity, movement * maxSpeed, accelerationFactor * Time.fixedDeltaTime);
         }
+
+        // Maintain vertical velocity
+        targetVelocity.y = rb.linearVelocity.y;
+
+        // Apply movement
+        rb.linearVelocity = targetVelocity;
+
+        // Apply dive force if diving and moving fast enough
+        if (isDiving && currentSpeed > minSpeedForDive)
+        {
+            rb.AddForce(Vector3.down * diveForce * accelerationFactor, ForceMode.Force);
+            // Convert downward momentum into forward momentum and increase speed
+            rb.AddForce(currentVelocityDir * (diveForce * 1.5f) * accelerationFactor, ForceMode.Force);
+            // Increase current speed during dive
+            currentSpeed = Mathf.Min(currentSpeed + (diveForce * Time.fixedDeltaTime), maxSpeed * 1.5f);
+        }
+
+
 
 
         // Rotate player to face camera's forward direction
@@ -156,4 +207,10 @@ public class PlayerMovement : MonoBehaviour
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
     }
+
+    public float GetCurrentSpeed()
+    {
+        return currentSpeed;
+    }
+
 }
