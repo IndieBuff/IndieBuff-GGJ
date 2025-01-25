@@ -6,9 +6,19 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float rotationSpeed = 5f;
 
+    [Header("Blast Pack Settings")]
+    [SerializeField] private float minBlastForce = 5f;
+    [SerializeField] private float maxBlastForce = 20f;
+    [SerializeField] private float maxChargeTime = 1.5f;
+    [SerializeField] private float upwardForceRatio = 0.6f;
+    [SerializeField] private float forwardForceRatio = 1f;
+
     private Rigidbody rb;
     private Camera mainCamera;
     private float horizontalInput;
+    private float chargeStartTime;
+    private bool isCharging;
+
 
     private void Start()
     {
@@ -36,7 +46,48 @@ public class PlayerMovement : MonoBehaviour
     {
         // Capture horizontal input in Update for responsiveness
         horizontalInput = Input.GetAxisRaw("Horizontal");
+
+        // Handle blast pack charging
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            StartCharging();
+        }
+
+        // Auto-launch if held too long
+        if (isCharging && Time.time - chargeStartTime >= maxChargeTime)
+        {
+            LaunchPlayer(maxChargeTime);
+        }
+        // Launch when space is released
+        else if (Input.GetKeyUp(KeyCode.Space) && isCharging)
+        {
+            float chargeTime = Time.time - chargeStartTime;
+            LaunchPlayer(chargeTime);
+        }
     }
+
+    private void StartCharging()
+    {
+        isCharging = true;
+        chargeStartTime = Time.time;
+    }
+
+    private void LaunchPlayer(float chargeTime)
+    {
+        isCharging = false;
+
+        // Calculate force based on charge time
+        float normalizedCharge = Mathf.Clamp01(chargeTime / maxChargeTime);
+        float totalForce = Mathf.Lerp(minBlastForce, maxBlastForce, normalizedCharge);
+
+        // Calculate launch direction
+        Vector3 forwardForce = mainCamera.transform.forward * (totalForce * forwardForceRatio);
+        Vector3 upwardForce = Vector3.up * (totalForce * upwardForceRatio);
+
+        // Apply the force
+        rb.AddForce((forwardForce + upwardForce), ForceMode.Impulse);
+    }
+
 
     private void FixedUpdate()
     {
