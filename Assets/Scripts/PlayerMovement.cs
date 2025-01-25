@@ -67,8 +67,10 @@ public class PlayerMovement : MonoBehaviour
         horizontalInput = Input.GetAxisRaw("Horizontal");
         verticalInput = Input.GetAxisRaw("Vertical");
 
-        // Handle diving
-        isDiving = verticalInput < -0.5f;
+        // Only allow diving when in the air
+        bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
+        isDiving = !isGrounded && verticalInput < -0.5f;
+
 
         // Handle blast pack charging if cooldown has elapsed
 
@@ -143,8 +145,10 @@ public class PlayerMovement : MonoBehaviour
         cameraForward.Normalize();
         cameraRight.Normalize();
 
-        // Create movement vector (forward + lateral movement)
-        Vector3 movement = cameraForward + (cameraRight * horizontalInput * 0.5f);
+        // Only allow lateral movement in the air
+        bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
+        Vector3 movement = isGrounded ? cameraForward : (cameraForward + (cameraRight * horizontalInput * 0.5f));
+
 
         // Normalize to prevent diagonal speed boost
         if (movement.magnitude > 1f)
@@ -157,8 +161,6 @@ public class PlayerMovement : MonoBehaviour
         currentSpeed = horizontalVelocity.magnitude;
         currentVelocityDir = currentSpeed > 0.1f ? horizontalVelocity.normalized : movement.normalized;
 
-        // Check if we're on the ground
-        bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
 
         // Only decay speed when in air, and decay much slower when on ground
         float actualDecayRate = isGrounded ? speedDecayRate * groundSpeedDecayMultiplier : speedDecayRate;
@@ -185,14 +187,25 @@ public class PlayerMovement : MonoBehaviour
         rb.linearVelocity = targetVelocity;
 
         // Apply dive force if diving and moving fast enough
-        if (isDiving && currentSpeed > minSpeedForDive)
+        if (!isGrounded && isDiving && currentSpeed > minSpeedForDive)
         {
-            rb.AddForce(Vector3.down * diveForce * accelerationFactor, ForceMode.Force);
-            // Convert downward momentum into forward momentum and increase speed
-            rb.AddForce(currentVelocityDir * (diveForce * 1.5f) * accelerationFactor, ForceMode.Force);
-            // Increase current speed during dive
-            currentSpeed = Mathf.Min(currentSpeed + (diveForce * Time.fixedDeltaTime), maxSpeed * 1.5f);
+            // Apply less downward force but maintain some for visual feedback
+            rb.AddForce(Vector3.down * (diveForce * 0.5f), ForceMode.Force);
+
+            // Significantly boost forward momentum while diving
+            float diveSpeedMultiplier = 3f;
+            rb.AddForce(currentVelocityDir * (diveForce * diveSpeedMultiplier), ForceMode.Force);
+
+            // Allow speed to exceed normal max speed while diving
+            float diveMaxSpeed = maxSpeed * 2f;
+            currentSpeed = Mathf.Min(currentSpeed + (diveForce * diveSpeedMultiplier * Time.fixedDeltaTime), diveMaxSpeed);
+
+            // Override target velocity to maintain high speed
+            targetVelocity = currentVelocityDir * currentSpeed;
+            targetVelocity.y = rb.linearVelocity.y;
+            rb.linearVelocity = targetVelocity;
         }
+
 
 
 
