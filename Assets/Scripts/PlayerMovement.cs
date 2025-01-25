@@ -81,11 +81,15 @@ public class PlayerMovement : MonoBehaviour
         float totalForce = Mathf.Lerp(minBlastForce, maxBlastForce, normalizedCharge);
 
         // Calculate launch direction
-        Vector3 forwardForce = mainCamera.transform.forward * (totalForce * forwardForceRatio);
+
+        Vector3 cameraForward = mainCamera.transform.forward;
+        cameraForward.y = 0;
+
+
+        Vector3 forwardForce = cameraForward * (totalForce * forwardForceRatio);
         Vector3 upwardForce = Vector3.up * (totalForce * upwardForceRatio);
 
-        // Apply the force
-        rb.AddForce((forwardForce + upwardForce), ForceMode.Impulse);
+        rb.AddForce(forwardForce + upwardForce, ForceMode.Impulse);
     }
 
 
