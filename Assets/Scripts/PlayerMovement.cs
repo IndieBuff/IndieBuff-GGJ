@@ -13,11 +13,19 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float upwardForceRatio = 0.6f;
     [SerializeField] private float forwardForceRatio = 1f;
 
+    [Header("Dive Settings")]
+    [SerializeField] private float diveForce = 20f;
+    [SerializeField] private float jumpCooldown = 1.5f;
+
     private Rigidbody rb;
     private Camera mainCamera;
     private float horizontalInput;
+    private float verticalInput;
     private float chargeStartTime;
     private bool isCharging;
+    private float lastJumpTime;
+    private bool isDiving;
+
 
 
     private void Start()
@@ -44,10 +52,15 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        // Capture horizontal input in Update for responsiveness
+        // Capture input in Update for responsiveness
         horizontalInput = Input.GetAxisRaw("Horizontal");
+        verticalInput = Input.GetAxisRaw("Vertical");
 
-        // Handle blast pack charging
+        // Handle diving
+        isDiving = verticalInput < -0.5f;
+
+        // Handle blast pack charging if cooldown has elapsed
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
             StartCharging();
@@ -68,9 +81,16 @@ public class PlayerMovement : MonoBehaviour
 
     private void StartCharging()
     {
+        // Check cooldown before allowing a new jump
+        if (Time.time - lastJumpTime < jumpCooldown)
+        {
+            return;
+        }
+
         isCharging = true;
         chargeStartTime = Time.time;
     }
+
 
     private void LaunchPlayer(float chargeTime)
     {
@@ -90,6 +110,8 @@ public class PlayerMovement : MonoBehaviour
         Vector3 upwardForce = Vector3.up * (totalForce * upwardForceRatio);
 
         rb.AddForce(forwardForce + upwardForce, ForceMode.Impulse);
+        lastJumpTime = Time.time;
+
     }
 
 
@@ -116,6 +138,13 @@ public class PlayerMovement : MonoBehaviour
 
         // Apply movement
         rb.MovePosition(rb.position + moveSpeed * Time.fixedDeltaTime * movement);
+
+        // Apply dive force if diving
+        if (isDiving)
+        {
+            rb.AddForce(Vector3.down * diveForce, ForceMode.Force);
+        }
+
 
         // Rotate player to face camera's forward direction
         Quaternion targetRotation = Quaternion.LookRotation(cameraForward);
