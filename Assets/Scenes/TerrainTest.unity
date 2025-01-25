@@ -399,7 +399,7 @@ GameObject:
   - component: {fileID: 977504482}
   - component: {fileID: 977504481}
   - component: {fileID: 977504480}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Terrain
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -935,7 +935,7 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
-  groundCheckDistance: 100
+  groundCheckDistance: 0.1
   minBlastForce: 10
   maxBlastForce: 20
   maxChargeTime: 1.5
