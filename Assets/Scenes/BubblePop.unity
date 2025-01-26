@@ -597,6 +597,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 580518942074730460, guid: f3f5d36c5f70842c7a1964bc8bdc4e5d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: ef6fe7217fd2da64a8c6627ddf555a03, type: 2}
     - target: {fileID: 2159781807846263944, guid: f3f5d36c5f70842c7a1964bc8bdc4e5d, type: 3}
       propertyPath: bubblePrefab
       value: 
