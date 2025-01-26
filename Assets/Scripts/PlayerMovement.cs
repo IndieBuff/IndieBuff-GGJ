@@ -189,12 +189,12 @@ public class PlayerMovement : MonoBehaviour
 
         if (!isGrounded && isDiving && currentSpeed > minSpeedForDive)
         {
-            rb.AddForce(Vector3.down * (diveForce * 0.5f), ForceMode.Force);
+            rb.AddForce(Vector3.down * diveForce * 5f, ForceMode.Force);
 
             float diveSpeedMultiplier = 3f;
             rb.AddForce(currentVelocityDir * (diveForce * diveSpeedMultiplier), ForceMode.Force);
 
-            float diveMaxSpeed = maxSpeed * 2f;
+            float diveMaxSpeed = maxSpeed * 1.25f;
             currentSpeed = Mathf.Min(currentSpeed + (diveForce * diveSpeedMultiplier * Time.fixedDeltaTime), diveMaxSpeed);
 
             Vector3 targetVelocity = currentVelocityDir * currentSpeed;
