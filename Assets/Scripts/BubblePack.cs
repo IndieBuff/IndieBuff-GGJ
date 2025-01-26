@@ -15,6 +15,9 @@ public class BubblePack : MonoBehaviour
     [SerializeField] private GameObject bubblePrefab;
     [SerializeField] private ParticleSystem popParticleEffect;
 
+    private float originalStartSpeed;
+    private float originalStartSize;
+    private Vector3 originalShapeScale;
     void Start()
     {
         bubblePrefab.GetComponent<Renderer>().enabled = false;
@@ -22,6 +25,16 @@ public class BubblePack : MonoBehaviour
         if (popParticleEffect == null)
         {
             popParticleEffect = GetComponentInChildren<ParticleSystem>();
+        }
+
+        if (popParticleEffect != null)
+        {
+            var main = popParticleEffect.main;
+            var shape = popParticleEffect.shape;
+
+            originalStartSpeed = main.startSpeed.constant;
+            originalStartSize = main.startSize.constant;
+            originalShapeScale = shape.scale;
         }
     }
 
@@ -72,12 +85,28 @@ public class BubblePack : MonoBehaviour
 
         if (popParticleEffect != null)
         {
+            var main = popParticleEffect.main;
+            var shape = popParticleEffect.shape;
+
+            main.startSpeed = originalStartSpeed;
+            main.startSize = originalStartSize;
+            shape.scale = originalShapeScale;
+
+            float bubbleScale = transform.localScale.x / minBubbleScale * 0.5f;
+            Debug.Log(bubbleScale);
+            main.startSpeed = originalStartSpeed * bubbleScale;
+            main.startSize = originalStartSize * bubbleScale;
+            shape.scale = new Vector3(
+                originalShapeScale.x * bubbleScale,
+                originalShapeScale.y * bubbleScale,
+                originalShapeScale.z * bubbleScale
+            );
+
             popParticleEffect.Play();
         }
 
         bubblePrefab.GetComponent<Renderer>().enabled = false;
         transform.localScale = minBubbleScale * Vector3.one;
-        Debug.Log(chargeTime);
 
         isCharging = false;
         lastJumpTime = Time.time;

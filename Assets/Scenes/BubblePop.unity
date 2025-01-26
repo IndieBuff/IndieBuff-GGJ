@@ -348,6 +348,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!198 &619353846 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 7810168472948814483, guid: f3f5d36c5f70842c7a1964bc8bdc4e5d, type: 3}
+  m_PrefabInstance: {fileID: 2099063993750782470}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1043873296 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 801222319010956235, guid: f3f5d36c5f70842c7a1964bc8bdc4e5d, type: 3}
@@ -592,6 +597,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2159781807846263944, guid: f3f5d36c5f70842c7a1964bc8bdc4e5d, type: 3}
+      propertyPath: popParticleEffect
+      value: 
+      objectReference: {fileID: 619353846}
     - target: {fileID: 5098714302819597616, guid: f3f5d36c5f70842c7a1964bc8bdc4e5d, type: 3}
       propertyPath: m_Name
       value: Player
@@ -639,6 +648,10 @@ PrefabInstance:
     - target: {fileID: 7810168472948814483, guid: f3f5d36c5f70842c7a1964bc8bdc4e5d, type: 3}
       propertyPath: playOnAwake
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7810168472948814483, guid: f3f5d36c5f70842c7a1964bc8bdc4e5d, type: 3}
+      propertyPath: scalingMode
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7810168472948814483, guid: f3f5d36c5f70842c7a1964bc8bdc4e5d, type: 3}
       propertyPath: InitialModule.startSize.scalar
