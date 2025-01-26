@@ -6,9 +6,6 @@ public class MainMenu : MonoBehaviour
 {
     [Header("Scene Settings")]
     [SerializeField] private string gameSceneName = "GameScene";
-    
-    [Header("UI References")]
-    [SerializeField] private TextMeshProUGUI titleText;
 
     private void Start()
     {

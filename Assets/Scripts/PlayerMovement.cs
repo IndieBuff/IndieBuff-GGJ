@@ -31,6 +31,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float maxEmissionRate = 50f;
     [SerializeField] private float speedThreshold = 5f; // Speed at which particles start emitting
 
+    [SerializeField] private ParticleSystem leftHandBubbles;
+    [SerializeField] private ParticleSystem rightHandBubbles;
+
     [Header("Animation Speed Settings")]
     [SerializeField] private float minAnimationSpeed = 0.5f;
     [SerializeField] private float maxAnimationSpeed = 2f;
@@ -98,6 +101,7 @@ public class PlayerMovement : MonoBehaviour
         HandleBlastPackCharging();
         UpdateParticleEmission();
         UpdateAnimationSpeed();
+        HandleBubbleParticles();
     }
 
     private void CaptureInput()
@@ -111,7 +115,7 @@ public class PlayerMovement : MonoBehaviour
         if (speedParticles == null) return;
 
         var emission = speedParticles.emission;
-        float currentSpeed = GetCurrentSpeed(); // You already have this method
+        float currentSpeed = GetCurrentSpeed();
         
         // Calculate emission rate based on speed
         float normalizedSpeed = Mathf.Clamp01((currentSpeed - speedThreshold) / (maxSpeed - speedThreshold));
@@ -121,6 +125,47 @@ public class PlayerMovement : MonoBehaviour
         var rate = emission.rateOverTime;
         rate.constant = newEmissionRate;
         emission.rateOverTime = rate;
+    }
+
+    private void HandleBubbleParticles()
+    {
+        if (leftHandBubbles == null || rightHandBubbles == null) return;
+
+        bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
+        bool movingRight = horizontalInput > 0;
+        bool movingLeft = horizontalInput < 0;
+        
+        // Handle right hand bubbles
+        if (!isGrounded && movingLeft)  // Moving left, right hand shoots bubbles
+        {
+            if (!rightHandBubbles.isPlaying)
+            {
+                rightHandBubbles.Play();
+            }
+        }
+        else
+        {
+            if (rightHandBubbles.isPlaying)
+            {
+                rightHandBubbles.Stop();
+            }
+        }
+
+        // Handle left hand bubbles
+        if (!isGrounded && movingRight)  // Moving right, left hand shoots bubbles
+        {
+            if (!leftHandBubbles.isPlaying)
+            {
+                leftHandBubbles.Play();
+            }
+        }
+        else
+        {
+            if (leftHandBubbles.isPlaying)
+            {
+                leftHandBubbles.Stop();
+            }
+        }
     }
 
     // Add this method to update animation speed
