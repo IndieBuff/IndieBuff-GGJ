@@ -11,6 +11,8 @@ public class UIManager : MonoBehaviour
 
     [Header("Game UI")]
     [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private TextMeshProUGUI speedText;
+    [SerializeField] private TextMeshProUGUI timeLeftText;
 
     [Header("Victory UI")]
     [SerializeField] private TextMeshProUGUI completionTimeText;
@@ -60,10 +62,29 @@ public class UIManager : MonoBehaviour
         timerText.text = FormatTime(currentTime);
     }
 
-    private string FormatTime(float timeInSeconds)
+    public void UpdateSpeed(float speed)
+    {
+        speedText.text = $"Speed: {speed:F2} m/s"; // Display speed with two decimal places
+    }
+
+    public void UpdateTimeLeft(float timeLeft)
+    {
+        timeLeftText.text = $"Time Left: {FormatTimeLeft(timeLeft)}";
+    }
+
+    private string FormatTimeLeft(float timeInSeconds)
     {
         int minutes = Mathf.FloorToInt(timeInSeconds / 60f);
         int seconds = Mathf.FloorToInt(timeInSeconds % 60f);
         return string.Format("{0:00}:{1:00}", minutes, seconds);
     }
+
+    private string FormatTime(float timeInSeconds)
+    {
+        int minutes = Mathf.FloorToInt(timeInSeconds / 60f);
+        int seconds = Mathf.FloorToInt(timeInSeconds % 60f);
+        int milliseconds = Mathf.FloorToInt((timeInSeconds * 1000) % 1000);
+        return string.Format("{0:00}:{1:00}.{2:000}", minutes, seconds, milliseconds);
+    }
+
 }

@@ -5,6 +5,7 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] private float levelTimeLimit = 60f; // Time limit in seconds
     [SerializeField] private UIManager uiManager;
+    [SerializeField] private Rigidbody playerRigidbody;
 
     private float currentTime;
     private float bestTime = float.MaxValue;
@@ -25,7 +26,6 @@ public class GameManager : MonoBehaviour
         }
 
         instance = this;
-        DontDestroyOnLoad(gameObject);
 
         // Load best time from PlayerPrefs
         bestTime = PlayerPrefs.GetFloat("BestTime", float.MaxValue);
@@ -43,11 +43,20 @@ public class GameManager : MonoBehaviour
             currentTime += Time.deltaTime;
             uiManager.UpdateTimer(currentTime);
 
+            UpdatePlayerSpeed();
+            uiManager.UpdateTimeLeft(levelTimeLimit - currentTime);
+
             if (currentTime >= levelTimeLimit)
             {
                 LevelFailed();
             }
         }
+    }
+
+    private void UpdatePlayerSpeed()
+    {
+        float speed = playerRigidbody.linearVelocity.magnitude;
+        uiManager.UpdateSpeed(speed);
     }
 
     public void StartLevel()
