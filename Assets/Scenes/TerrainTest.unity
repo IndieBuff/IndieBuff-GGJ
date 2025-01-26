@@ -1433,6 +1433,10 @@ PrefabInstance:
       value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 6781974708332718105, guid: d5453b3fbd7e84bacb884b79e68f9c6f, type: 3}
+      propertyPath: diveForce
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6781974708332718105, guid: d5453b3fbd7e84bacb884b79e68f9c6f, type: 3}
       propertyPath: rotationSpeed
       value: 20
       objectReference: {fileID: 0}
