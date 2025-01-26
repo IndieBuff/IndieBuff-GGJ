@@ -13,10 +13,16 @@ public class BubblePack : MonoBehaviour
     [SerializeField] private float maxBubbleScale = 1f;
 
     [SerializeField] private GameObject bubblePrefab;
+    [SerializeField] private ParticleSystem popParticleEffect;
 
     void Start()
     {
         bubblePrefab.GetComponent<Renderer>().enabled = false;
+
+        if (popParticleEffect == null)
+        {
+            popParticleEffect = GetComponentInChildren<ParticleSystem>();
+        }
     }
 
     private void Update()
@@ -64,6 +70,10 @@ public class BubblePack : MonoBehaviour
     {
         if (Time.time - lastJumpTime < jumpCooldown) return;
 
+        if (popParticleEffect != null)
+        {
+            popParticleEffect.Play();
+        }
 
         bubblePrefab.GetComponent<Renderer>().enabled = false;
         transform.localScale = minBubbleScale * Vector3.one;
