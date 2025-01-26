@@ -80,6 +80,7 @@ public class PlayerMovement : MonoBehaviour
 
     private static readonly int IsFloating = Animator.StringToHash("IsFloating");
     private static readonly int IsRunning = Animator.StringToHash("IsRunning");
+    private static readonly int IsDiving = Animator.StringToHash("IsDiving");
 
     private void HandleGroundedState()
     {
@@ -92,8 +93,9 @@ public class PlayerMovement : MonoBehaviour
         bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
         isDiving = !isGrounded && verticalInput < -0.5f;
         
-        animator.SetBool(IsFloating, !isGrounded);
+        animator.SetBool(IsFloating, !isGrounded && !isDiving);
         animator.SetBool(IsRunning, isGrounded);
+        animator.SetBool(IsDiving, isDiving);
     }
 
 

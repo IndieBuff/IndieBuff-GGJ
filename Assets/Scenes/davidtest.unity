@@ -5386,7 +5386,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1112974159}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.21896738, y: 0.00071135315, z: -0.00015963722, w: 0.9757319}
+  m_LocalRotation: {x: 0.21896736, y: 0.0006297866, z: -0.00014133257, w: 0.97573197}
   m_LocalPosition: {x: 77.51348, y: 26.610985, z: 983.75}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -5658,7 +5658,7 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
-  groundCheckDistance: 3
+  groundCheckDistance: 1.45
   minBlastForce: 10
   maxBlastForce: 20
   maxChargeTime: 1.5
@@ -5906,7 +5906,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1724006830}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.21896735, y: 0.00071135303, z: -0.00015963711, w: 0.97573197}
+  m_LocalRotation: {x: 0.21896735, y: 0.0006297866, z: -0.00014133251, w: 0.97573197}
   m_LocalPosition: {x: 77.51348, y: 26.610985, z: 983.75}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
