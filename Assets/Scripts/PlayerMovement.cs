@@ -68,7 +68,9 @@ public class PlayerMovement : MonoBehaviour
     {
         InitializeComponents();
         ConfigureCursor();
+        gameObject.AddComponent<CheckpointManager>();
     }
+
 
     private void InitializeComponents()
     {
