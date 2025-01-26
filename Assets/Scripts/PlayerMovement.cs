@@ -32,8 +32,10 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float maxEmissionRate = 50f;
     [SerializeField] private float speedThreshold = 5f; // Speed at which particles start emitting
 
+    [Header("Bubbles")]
     [SerializeField] private ParticleSystem leftHandBubbles;
     [SerializeField] private ParticleSystem rightHandBubbles;
+    [SerializeField] private AudioSource bubbleSound;
 
     [Header("Animation Speed Settings")]
     [SerializeField] private float minAnimationSpeed = 0.5f;
@@ -139,13 +141,15 @@ public class PlayerMovement : MonoBehaviour
         bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
         bool movingRight = horizontalInput > 0;
         bool movingLeft = horizontalInput < 0;
-
+        bool shouldPlayBubbles = !isGrounded && (movingLeft || movingRight);
+        
         // Handle right hand bubbles
         if (!isGrounded && movingLeft)  // Moving left, right hand shoots bubbles
         {
             if (!rightHandBubbles.isPlaying)
             {
                 rightHandBubbles.Play();
+                
             }
         }
         else
@@ -170,6 +174,15 @@ public class PlayerMovement : MonoBehaviour
             {
                 leftHandBubbles.Stop();
             }
+        }
+
+        if (shouldPlayBubbles && !bubbleSound.isPlaying)
+        {
+            bubbleSound.Play();
+        }
+        else if (!shouldPlayBubbles && bubbleSound.isPlaying)
+        {
+            bubbleSound.Stop();
         }
     }
 
