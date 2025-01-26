@@ -21,6 +21,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float diveForce = 30f;
     [SerializeField] private float jumpCooldown = 1.5f;
     [SerializeField] private float minSpeedForDive = 5f;
+    [SerializeField] private float diveMultiplier = 2f;
 
     [Header("Slope Handling")]
     [SerializeField] private float maxSlopeAngle;
@@ -40,6 +41,10 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float minAnimationSpeed = 0.5f;
     [SerializeField] private float maxAnimationSpeed = 2f;
     [SerializeField] private float speedThresholdForAnim = 5f; // Speed at which animations start speeding up
+
+    [Header("Gravity Settings")]
+    [SerializeField] private float extraGravityMultiplier = 2f;
+    [SerializeField] private float airControlReduction = 0.5f;
 
     private Rigidbody rb;
     private Camera mainCamera;
@@ -81,7 +86,7 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         mainCamera = Camera.main;
-        animator = GetComponent<Animator>(); 
+        animator = GetComponent<Animator>();
 
         if (rb == null || mainCamera == null)
         {
@@ -118,11 +123,11 @@ public class PlayerMovement : MonoBehaviour
 
         var emission = speedParticles.emission;
         float currentSpeed = GetCurrentSpeed();
-        
+
         // Calculate emission rate based on speed
         float normalizedSpeed = Mathf.Clamp01((currentSpeed - speedThreshold) / (maxSpeed - speedThreshold));
         float newEmissionRate = Mathf.Lerp(minEmissionRate, maxEmissionRate, normalizedSpeed);
-        
+
         // Update the emission rate
         var rate = emission.rateOverTime;
         rate.constant = newEmissionRate;
@@ -188,10 +193,10 @@ public class PlayerMovement : MonoBehaviour
 
         // Calculate normalized speed (0 to 1) based on current speed
         float normalizedSpeed = Mathf.Clamp01((currentSpeed - speedThresholdForAnim) / (maxSpeed - speedThresholdForAnim));
-        
+
         // Lerp between min and max animation speeds
         float targetAnimSpeed = Mathf.Lerp(minAnimationSpeed, maxAnimationSpeed, normalizedSpeed);
-        
+
         // Set single Speed parameter for all animations
         animator.SetFloat("Speed", targetAnimSpeed);
     }
@@ -201,10 +206,10 @@ public class PlayerMovement : MonoBehaviour
     {
         Vector3 rayStart = transform.position;
         float scaledDistance = groundCheckDistance * transform.localScale.y;
-        
+
         // Simple debug line in red
         Debug.DrawLine(rayStart, rayStart + (Vector3.down * scaledDistance), Color.red);
-        
+
         bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
 
         // Check if we just landed from a dive
@@ -216,7 +221,7 @@ public class PlayerMovement : MonoBehaviour
         wasJustDiving = isDiving;
 
         isDiving = !isGrounded && verticalInput < -0.5f;
-        
+
         animator.SetBool(IsFloating, !isGrounded && !isDiving);
         animator.SetBool(IsRunning, isGrounded && !isRolling);
         animator.SetBool(IsDiving, isDiving);
@@ -295,12 +300,53 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // Add this before the existing movement code
+        bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
+        if (!isGrounded) // Only apply extra gravity when not diving
+        {
+            if (isDiving)
+            {
+                rb.AddForce(Physics.gravity * extraGravityMultiplier * diveMultiplier, ForceMode.Acceleration);
+            }
+            else
+            {
+                rb.AddForce(Physics.gravity * extraGravityMultiplier, ForceMode.Acceleration);
+            }
+        }
+
+        // Rest of your existing FixedUpdate code...
         Vector3 movementDirection = CalculateMovementDirection();
         UpdateCurrentSpeedAndDirection(movementDirection);
         ApplyMovement(movementDirection);
-        HandleDiving();
+        //HandleDiving();
         RotatePlayer();
+
     }
+
+    private void HandleDiving()
+    {
+        bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
+
+        if (!isGrounded && isDiving && currentSpeed > minSpeedForDive)
+        {
+            // Increase the downward force multiplier (changed from 5f to 8f)
+            rb.AddForce(Vector3.down * diveForce * 8f, ForceMode.Force);
+
+            // Increase the forward momentum during dive (changed from 3f to 4f)
+            float diveSpeedMultiplier = 4f;
+            rb.AddForce(currentVelocityDir * (diveForce * diveSpeedMultiplier), ForceMode.Force);
+
+            // Increase the max speed during dive (changed from 1.25f to 1.5f)
+            float diveMaxSpeed = maxSpeed * 1.5f;
+            currentSpeed = Mathf.Min(currentSpeed + (diveForce * diveSpeedMultiplier * Time.fixedDeltaTime), diveMaxSpeed);
+
+            Vector3 targetVelocity = currentVelocityDir * currentSpeed;
+            targetVelocity.y = rb.linearVelocity.y;
+            rb.linearVelocity = targetVelocity;
+        }
+    }
+
+
 
     private Vector3 CalculateMovementDirection()
     {
@@ -354,28 +400,9 @@ public class PlayerMovement : MonoBehaviour
         rb.linearVelocity = targetVelocity;
     }
 
-    
 
 
-    private void HandleDiving()
-    {
-        bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
 
-        if (!isGrounded && isDiving && currentSpeed > minSpeedForDive)
-        {
-            rb.AddForce(Vector3.down * diveForce * 5f, ForceMode.Force);
-
-            float diveSpeedMultiplier = 3f;
-            rb.AddForce(currentVelocityDir * (diveForce * diveSpeedMultiplier), ForceMode.Force);
-
-            float diveMaxSpeed = maxSpeed * 1.25f;
-            currentSpeed = Mathf.Min(currentSpeed + (diveForce * diveSpeedMultiplier * Time.fixedDeltaTime), diveMaxSpeed);
-
-            Vector3 targetVelocity = currentVelocityDir * currentSpeed;
-            targetVelocity.y = rb.linearVelocity.y;
-            rb.linearVelocity = targetVelocity;
-        }
-    }
 
     private void RotatePlayer()
     {
