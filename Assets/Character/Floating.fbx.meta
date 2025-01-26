@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 43d4faec83b713c4bad80b68506e8f5d
+guid: 953815b6c95ca2a4d929c522a9ccb737
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -31,11 +31,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: diving
+      name: floating
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
-      lastFrame: 71
+      lastFrame: 56
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
