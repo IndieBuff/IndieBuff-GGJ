@@ -25,6 +25,17 @@ public class PlayerMovement : MonoBehaviour
     [Header("Slope Handling")]
     [SerializeField] private float maxSlopeAngle;
 
+    [Header("Particle System Settings")]
+    [SerializeField] private ParticleSystem speedParticles;
+    [SerializeField] private float minEmissionRate = 0f;
+    [SerializeField] private float maxEmissionRate = 50f;
+    [SerializeField] private float speedThreshold = 5f; // Speed at which particles start emitting
+
+    [Header("Animation Speed Settings")]
+    [SerializeField] private float minAnimationSpeed = 0.5f;
+    [SerializeField] private float maxAnimationSpeed = 2f;
+    [SerializeField] private float speedThresholdForAnim = 5f; // Speed at which animations start speeding up
+
     private Rigidbody rb;
     private Camera mainCamera;
 
@@ -39,6 +50,19 @@ public class PlayerMovement : MonoBehaviour
     private RaycastHit slopeHit;
 
     private Animator animator;
+
+    private static readonly int IsFloating = Animator.StringToHash("IsFloating");
+    private static readonly int IsRunning = Animator.StringToHash("IsRunning");
+    private static readonly int IsDiving = Animator.StringToHash("IsDiving");
+    private static readonly int IsRolling = Animator.StringToHash("IsRolling");
+
+    // Add these new fields
+    private bool wasJustDiving = false;
+    private bool isRolling = false;
+    private float rollDuration = 0.2f; // Adjust this to match your roll animation length
+    private float rollStartTime;
+
+
 
     private void Start()
     {
@@ -70,6 +94,8 @@ public class PlayerMovement : MonoBehaviour
         CaptureInput();
         HandleGroundedState();
         HandleBlastPackCharging();
+        UpdateParticleEmission();
+        UpdateAnimationSpeed();
     }
 
     private void CaptureInput()
@@ -78,17 +104,38 @@ public class PlayerMovement : MonoBehaviour
         verticalInput = Input.GetAxisRaw("Vertical");
     }
 
-    private static readonly int IsFloating = Animator.StringToHash("IsFloating");
-    private static readonly int IsRunning = Animator.StringToHash("IsRunning");
-    private static readonly int IsDiving = Animator.StringToHash("IsDiving");
+    private void UpdateParticleEmission()
+    {
+        if (speedParticles == null) return;
 
-    private static readonly int IsRolling = Animator.StringToHash("IsRolling");
+        var emission = speedParticles.emission;
+        float currentSpeed = GetCurrentSpeed(); // You already have this method
+        
+        // Calculate emission rate based on speed
+        float normalizedSpeed = Mathf.Clamp01((currentSpeed - speedThreshold) / (maxSpeed - speedThreshold));
+        float newEmissionRate = Mathf.Lerp(minEmissionRate, maxEmissionRate, normalizedSpeed);
+        
+        // Update the emission rate
+        var rate = emission.rateOverTime;
+        rate.constant = newEmissionRate;
+        emission.rateOverTime = rate;
+    }
 
-    // Add these new fields
-    private bool wasJustDiving = false;
-    private bool isRolling = false;
-    private float rollDuration = 0.5f; // Adjust this to match your roll animation length
-    private float rollStartTime;
+    // Add this method to update animation speed
+    private void UpdateAnimationSpeed()
+    {
+        if (animator == null) return;
+
+        // Calculate normalized speed (0 to 1) based on current speed
+        float normalizedSpeed = Mathf.Clamp01((currentSpeed - speedThresholdForAnim) / (maxSpeed - speedThresholdForAnim));
+        
+        // Lerp between min and max animation speeds
+        float targetAnimSpeed = Mathf.Lerp(minAnimationSpeed, maxAnimationSpeed, normalizedSpeed);
+        
+        // Set single Speed parameter for all animations
+        animator.SetFloat("Speed", targetAnimSpeed);
+    }
+
 
     private void HandleGroundedState()
     {
@@ -126,8 +173,8 @@ public class PlayerMovement : MonoBehaviour
     {
         isRolling = true;
         rollStartTime = Time.time;
-        // Optionally maintain some forward momentum during roll
-        currentSpeed = Mathf.Max(currentSpeed * 0.7f, minSpeedForDive);
+        // maintain some forward momentum during roll
+        //currentSpeed = Mathf.Max(currentSpeed * 0.7f, minSpeedForDive);
     }
 
     private void EndRoll()
@@ -227,9 +274,9 @@ public class PlayerMovement : MonoBehaviour
         // If rolling, maintain forward momentum but don't allow new input
         if (isRolling)
         {
-            Vector3 rollVelocity = currentVelocityDir * currentSpeed;
+            /*Vector3 rollVelocity = currentVelocityDir * currentSpeed;
             rollVelocity.y = rb.linearVelocity.y;
-            rb.linearVelocity = rollVelocity;
+            rb.linearVelocity = rollVelocity;*/
             return;
         }
 
