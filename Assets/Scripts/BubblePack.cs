@@ -1,7 +1,14 @@
 using UnityEngine;
+using System;
+
 
 public class BubblePack : MonoBehaviour
 {
+    [Header("Sound Effects")]
+
+    [SerializeField] private AudioSource chargingSound;
+    [SerializeField] private AudioSource releaseSound;
+
 
     private float chargeStartTime;
     private bool isCharging;
@@ -76,12 +83,31 @@ public class BubblePack : MonoBehaviour
             isCharging = true;
             chargeStartTime = Time.time;
             bubblePrefab.GetComponent<Renderer>().enabled = true;
+
+            if (chargingSound.clip != null)
+            {
+                chargingSound.Play();
+            }
         }
+
     }
 
     private void PopBubble(float chargeTime)
     {
         if (Time.time - lastJumpTime < jumpCooldown) return;
+
+        // Stop charging sound if it's playing
+        if (chargingSound.isPlaying)
+        {
+            chargingSound.Stop();
+        }
+
+        // Play release sound
+        if (releaseSound.clip != null)
+        {
+            releaseSound.Play();
+        }
+
 
         if (popParticleEffect != null)
         {
