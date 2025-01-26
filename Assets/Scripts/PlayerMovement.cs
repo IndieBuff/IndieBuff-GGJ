@@ -7,15 +7,12 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float maxSpeed = 30f;
     [SerializeField] private float speedDecayRate = 0.1f;
     [SerializeField] private float accelerationCurveExponent = 2f;
-    [SerializeField] private float airSpeedDecayMultiplier = 0.2f; // Lower value = less speed loss on ground
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private float groundCheckDistance = 0.1f;
-
 
     [Header("Blast Pack Settings")]
     [SerializeField] private float minBlastForce = 10f;
     [SerializeField] private float maxBlastForce = 25f;
-
     [SerializeField] private float maxChargeTime = 1.5f;
     [SerializeField] private float upwardForceRatio = 0.6f;
     [SerializeField] private float forwardForceRatio = 1f;
@@ -26,11 +23,11 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float minSpeedForDive = 5f;
 
     [Header("Slope Handling")]
-    public float maxSlopeAngle;
-    private RaycastHit slopeHit;
+    [SerializeField] private float maxSlopeAngle;
 
     private Rigidbody rb;
     private Camera mainCamera;
+
     private float horizontalInput;
     private float verticalInput;
     private float chargeStartTime;
@@ -39,176 +36,177 @@ public class PlayerMovement : MonoBehaviour
     private bool isDiving;
     private float currentSpeed;
     private Vector3 currentVelocityDir;
-
+    private RaycastHit slopeHit;
 
     private void Start()
     {
+        InitializeComponents();
+        ConfigureCursor();
+    }
+
+    private void InitializeComponents()
+    {
         rb = GetComponent<Rigidbody>();
-        if (rb == null)
-        {
-            Debug.LogError("Rigidbody component missing!");
-            enabled = false;
-            return;
-        }
-
         mainCamera = Camera.main;
-        if (mainCamera == null)
-        {
-            Debug.LogError("Main camera not found!");
-            enabled = false;
-            return;
-        }
 
+        if (rb == null || mainCamera == null)
+        {
+            Debug.LogError("Required components missing!");
+            enabled = false;
+        }
+    }
+
+    private void ConfigureCursor()
+    {
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void Update()
     {
-        // Capture input in Update for responsiveness
+        CaptureInput();
+        HandleGroundedState();
+        HandleBlastPackCharging();
+    }
+
+    private void CaptureInput()
+    {
         horizontalInput = Input.GetAxisRaw("Horizontal");
         verticalInput = Input.GetAxisRaw("Vertical");
+    }
 
-        // Only allow diving when in the air
+    private void HandleGroundedState()
+    {
         bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
         isDiving = !isGrounded && verticalInput < -0.5f;
+    }
 
-
-        // Handle blast pack charging if cooldown has elapsed
-
+    private void HandleBlastPackCharging()
+    {
         if (Input.GetKeyDown(KeyCode.Space))
         {
             StartCharging();
         }
 
-        // Auto-launch if held too long
-        if (isCharging && Time.time - chargeStartTime >= maxChargeTime)
-        {
-            LaunchPlayer(maxChargeTime);
-        }
-        // Launch when space is released
-        else if (Input.GetKeyUp(KeyCode.Space) && isCharging)
+        if (isCharging)
         {
             float chargeTime = Time.time - chargeStartTime;
-            LaunchPlayer(chargeTime);
+            if (chargeTime >= maxChargeTime)
+            {
+                LaunchPlayer(maxChargeTime);
+            }
+            else if (Input.GetKeyUp(KeyCode.Space))
+            {
+                LaunchPlayer(chargeTime);
+            }
         }
     }
 
     private void StartCharging()
     {
-        // Check cooldown before allowing a new jump
-        if (Time.time - lastJumpTime < jumpCooldown)
+        if (Time.time - lastJumpTime >= jumpCooldown)
         {
-            return;
+            isCharging = true;
+            chargeStartTime = Time.time;
         }
-
-        isCharging = true;
-        chargeStartTime = Time.time;
     }
-
 
     private void LaunchPlayer(float chargeTime)
     {
         isCharging = false;
-
-        // Calculate force based on charge time
         float normalizedCharge = Mathf.Clamp01(chargeTime / maxChargeTime);
         float totalForce = Mathf.Lerp(minBlastForce, maxBlastForce, normalizedCharge);
 
-        // Calculate launch direction
-
         Vector3 cameraForward = mainCamera.transform.forward;
         cameraForward.y = 0;
-
+        cameraForward.Normalize();
 
         Vector3 forwardForce = cameraForward * (totalForce * forwardForceRatio);
         Vector3 upwardForce = Vector3.up * (totalForce * upwardForceRatio);
 
-        // Calculate boost based on current speed
         float speedRatio = currentSpeed / maxSpeed;
-        float boostMultiplier = 1f + (speedRatio * 0.5f); // Up to 50% extra force at max speed
+        float boostMultiplier = 1f + (speedRatio * 0.5f);
 
         rb.AddForce((forwardForce + upwardForce) * boostMultiplier, ForceMode.Impulse);
         lastJumpTime = Time.time;
-
-
     }
-
 
     private void FixedUpdate()
     {
-        // Get camera directions each physics step to handle camera movement correctly
+        Vector3 movementDirection = CalculateMovementDirection();
+        UpdateCurrentSpeedAndDirection(movementDirection);
+        ApplyMovement(movementDirection);
+        HandleDiving();
+        RotatePlayer();
+    }
+
+    private Vector3 CalculateMovementDirection()
+    {
         Vector3 cameraForward = mainCamera.transform.forward;
         Vector3 cameraRight = mainCamera.transform.right;
 
-        // Flatten directions to horizontal plane
         cameraForward.y = 0;
         cameraRight.y = 0;
         cameraForward.Normalize();
         cameraRight.Normalize();
 
-        // Only allow lateral movement in the air
         bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
-        Vector3 movement = isGrounded ? cameraForward : (cameraForward + (cameraRight * horizontalInput * 0.5f));
+        Vector3 movement = isGrounded
+            ? cameraForward
+            : (cameraForward + (cameraRight * horizontalInput * 0.5f));
 
+        return movement.magnitude > 1f ? movement.normalized : movement;
+    }
 
-        // Normalize to prevent diagonal speed boost
-        if (movement.magnitude > 1f)
-        {
-            movement.Normalize();
-        }
-
-        // Calculate current speed and direction
+    private void UpdateCurrentSpeedAndDirection(Vector3 movement)
+    {
         Vector3 horizontalVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
         currentSpeed = horizontalVelocity.magnitude;
         currentVelocityDir = currentSpeed > 0.1f ? horizontalVelocity.normalized : movement.normalized;
 
+        currentSpeed = Mathf.Max(0, currentSpeed - (speedDecayRate * Time.fixedDeltaTime));
+    }
 
-        // Only decay speed when in air, and decay much slower when on ground
-        float actualDecayRate = !isGrounded ? speedDecayRate : speedDecayRate;
-        currentSpeed = Mathf.Max(0, currentSpeed - (actualDecayRate * Time.fixedDeltaTime));
-
-
-        // Calculate acceleration factor (gets smaller as we approach max speed)
+    private void ApplyMovement(Vector3 movement)
+    {
         float speedRatio = currentSpeed / maxSpeed;
         float accelerationFactor = 1f - Mathf.Pow(speedRatio, accelerationCurveExponent);
 
-        // Apply movement based on current speed and new input
         Vector3 targetVelocity = currentVelocityDir * currentSpeed;
 
-        // Blend between current direction and input direction
         if (movement.magnitude > 0.1f)
         {
             targetVelocity = Vector3.Lerp(targetVelocity, movement * maxSpeed, accelerationFactor * Time.fixedDeltaTime);
         }
 
-        // Maintain vertical velocity
         targetVelocity.y = rb.linearVelocity.y;
-
-        // Apply movement
         rb.linearVelocity = targetVelocity;
+    }
 
-        // Apply dive force if diving and moving fast enough
+    private void HandleDiving()
+    {
+        bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
+
         if (!isGrounded && isDiving && currentSpeed > minSpeedForDive)
         {
-            // Apply less downward force but maintain some for visual feedback
             rb.AddForce(Vector3.down * (diveForce * 0.5f), ForceMode.Force);
 
-            // Significantly boost forward momentum while diving
             float diveSpeedMultiplier = 3f;
             rb.AddForce(currentVelocityDir * (diveForce * diveSpeedMultiplier), ForceMode.Force);
 
-            // Allow speed to exceed normal max speed while diving
             float diveMaxSpeed = maxSpeed * 2f;
             currentSpeed = Mathf.Min(currentSpeed + (diveForce * diveSpeedMultiplier * Time.fixedDeltaTime), diveMaxSpeed);
 
-            // Override target velocity to maintain high speed
-            targetVelocity = currentVelocityDir * currentSpeed;
+            Vector3 targetVelocity = currentVelocityDir * currentSpeed;
             targetVelocity.y = rb.linearVelocity.y;
             rb.linearVelocity = targetVelocity;
         }
+    }
 
-        // Rotate player to face camera's forward direction
+    private void RotatePlayer()
+    {
+        Vector3 cameraForward = mainCamera.transform.forward;
+        cameraForward.y = 0;
         Quaternion targetRotation = Quaternion.LookRotation(cameraForward);
         rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime));
     }
@@ -219,25 +217,17 @@ public class PlayerMovement : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
     }
 
-    public float GetCurrentSpeed()
-    {
-        return currentSpeed;
-    }
+    // Kept optional methods for potential external use
+    public float GetCurrentSpeed() => currentSpeed;
 
     private bool OnSlope()
     {
-        if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, groundCheckDistance))
-        {
-            float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
-            return angle < maxSlopeAngle && angle != 0;
-        }
-
-        return false;
+        return Physics.Raycast(transform.position, Vector3.down, out slopeHit, groundCheckDistance)
+            && Vector3.Angle(Vector3.up, slopeHit.normal) < maxSlopeAngle;
     }
 
     private Vector3 GetSlopeMoveDirection()
     {
         return Vector3.ProjectOnPlane(currentVelocityDir, slopeHit.normal).normalized;
     }
-
 }
