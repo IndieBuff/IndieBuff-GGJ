@@ -230,7 +230,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -240,7 +240,7 @@ MonoBehaviour:
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
-  m_TextWrappingMode: 1
+  m_TextWrappingMode: 0
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
@@ -577,7 +577,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1112974159}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.21896717, y: 0.001445406, z: -0.0003243685, w: 0.97573113}
+  m_LocalRotation: {x: 0.21896724, y: 0.0012465704, z: -0.00027974715, w: 0.97573143}
   m_LocalPosition: {x: 77.51348, y: 26.610985, z: 955.23004}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -671,6 +671,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c4e465d229504909b61899d5b6e0ae9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!198 &1371715537 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 7391827305011027320, guid: 4eb2b012543569d47ab4a94e28088c1d, type: 3}
+  m_PrefabInstance: {fileID: 684135323809455321}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1715663829
 GameObject:
   m_ObjectHideFlags: 0
@@ -1011,13 +1016,18 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1724006830}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.21896715, y: 0.001445406, z: -0.00032436845, w: 0.97573113}
+  m_LocalRotation: {x: 0.21896723, y: 0.0012465701, z: -0.00027974704, w: 0.97573143}
   m_LocalPosition: {x: 77.51348, y: 26.610985, z: 955.23004}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 29.358, y: 0, z: 0}
+--- !u!198 &1973626788 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 6876381070461049775, guid: 4eb2b012543569d47ab4a94e28088c1d, type: 3}
+  m_PrefabInstance: {fileID: 684135323809455321}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2031650853
 GameObject:
   m_ObjectHideFlags: 0
@@ -1149,6 +1159,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Character
       objectReference: {fileID: 0}
+    - target: {fileID: 7414356601957284479, guid: 4eb2b012543569d47ab4a94e28088c1d, type: 3}
+      propertyPath: leftHandBubbles
+      value: 
+      objectReference: {fileID: 1371715537}
+    - target: {fileID: 7414356601957284479, guid: 4eb2b012543569d47ab4a94e28088c1d, type: 3}
+      propertyPath: rightHandBubbles
+      value: 
+      objectReference: {fileID: 1973626788}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
