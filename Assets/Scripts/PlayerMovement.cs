@@ -38,6 +38,8 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 currentVelocityDir;
     private RaycastHit slopeHit;
 
+    private Animator animator;
+
     private void Start()
     {
         InitializeComponents();
@@ -48,6 +50,7 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         mainCamera = Camera.main;
+        animator = GetComponent<Animator>(); 
 
         if (rb == null || mainCamera == null)
         {
@@ -75,11 +78,63 @@ public class PlayerMovement : MonoBehaviour
         verticalInput = Input.GetAxisRaw("Vertical");
     }
 
+    private static readonly int IsFloating = Animator.StringToHash("IsFloating");
+    private static readonly int IsRunning = Animator.StringToHash("IsRunning");
+    private static readonly int IsDiving = Animator.StringToHash("IsDiving");
+
+    private static readonly int IsRolling = Animator.StringToHash("IsRolling");
+
+    // Add these new fields
+    private bool wasJustDiving = false;
+    private bool isRolling = false;
+    private float rollDuration = 0.5f; // Adjust this to match your roll animation length
+    private float rollStartTime;
+
     private void HandleGroundedState()
     {
+        Vector3 rayStart = transform.position;
+        float scaledDistance = groundCheckDistance * transform.localScale.y;
+        
+        // Simple debug line in red
+        Debug.DrawLine(rayStart, rayStart + (Vector3.down * scaledDistance), Color.red);
+        
         bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
+
+        // Check if we just landed from a dive
+        if (isGrounded && wasJustDiving && !isRolling)
+        {
+            StartRoll();
+        }
+
+        wasJustDiving = isDiving;
+
         isDiving = !isGrounded && verticalInput < -0.5f;
+        
+        animator.SetBool(IsFloating, !isGrounded && !isDiving);
+        animator.SetBool(IsRunning, isGrounded && !isRolling);
+        animator.SetBool(IsDiving, isDiving);
+        animator.SetBool(IsRolling, isRolling);
+
+        // Check if roll is complete
+        if (isRolling && Time.time - rollStartTime >= rollDuration)
+        {
+            EndRoll();
+        }
     }
+
+    private void StartRoll()
+    {
+        isRolling = true;
+        rollStartTime = Time.time;
+        // Optionally maintain some forward momentum during roll
+        currentSpeed = Mathf.Max(currentSpeed * 0.7f, minSpeedForDive);
+    }
+
+    private void EndRoll()
+    {
+        isRolling = false;
+    }
+
 
     private void HandleBlastPackCharging()
     {
@@ -169,6 +224,15 @@ public class PlayerMovement : MonoBehaviour
 
     private void ApplyMovement(Vector3 movement)
     {
+        // If rolling, maintain forward momentum but don't allow new input
+        if (isRolling)
+        {
+            Vector3 rollVelocity = currentVelocityDir * currentSpeed;
+            rollVelocity.y = rb.linearVelocity.y;
+            rb.linearVelocity = rollVelocity;
+            return;
+        }
+
         float speedRatio = currentSpeed / maxSpeed;
         float accelerationFactor = 1f - Mathf.Pow(speedRatio, accelerationCurveExponent);
 
@@ -182,6 +246,9 @@ public class PlayerMovement : MonoBehaviour
         targetVelocity.y = rb.linearVelocity.y;
         rb.linearVelocity = targetVelocity;
     }
+
+    
+
 
     private void HandleDiving()
     {

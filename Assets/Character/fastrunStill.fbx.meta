@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 43d4faec83b713c4bad80b68506e8f5d
+guid: b7da6319f8a46e74f81bfe4fb4db8ae6
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -31,11 +31,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: diving
+      name: fastRunStill
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
-      lastFrame: 71
+      lastFrame: 14
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
