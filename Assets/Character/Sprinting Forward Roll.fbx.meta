@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: a03aa7a6e91f89b43a3922ffc2c5a497
+guid: 7f87e03bc2ecc3f46b1b5a0b649a3fee
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -31,11 +31,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: roll
+      name: sprintroll
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
-      lastFrame: 36
+      lastFrame: 35
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
