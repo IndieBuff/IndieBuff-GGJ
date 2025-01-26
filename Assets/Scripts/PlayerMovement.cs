@@ -38,6 +38,8 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 currentVelocityDir;
     private RaycastHit slopeHit;
 
+    private Animator animator;
+
     private void Start()
     {
         InitializeComponents();
@@ -48,6 +50,7 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         mainCamera = Camera.main;
+        animator = GetComponent<Animator>(); 
 
         if (rb == null || mainCamera == null)
         {
@@ -75,11 +78,24 @@ public class PlayerMovement : MonoBehaviour
         verticalInput = Input.GetAxisRaw("Vertical");
     }
 
+    private static readonly int IsFloating = Animator.StringToHash("IsFloating");
+    private static readonly int IsRunning = Animator.StringToHash("IsRunning");
+
     private void HandleGroundedState()
     {
+        Vector3 rayStart = transform.position;
+        float scaledDistance = groundCheckDistance * transform.localScale.y;
+        
+        // Simple debug line in red
+        Debug.DrawLine(rayStart, rayStart + (Vector3.down * scaledDistance), Color.red);
+        
         bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
         isDiving = !isGrounded && verticalInput < -0.5f;
+        
+        animator.SetBool(IsFloating, !isGrounded);
+        animator.SetBool(IsRunning, isGrounded);
     }
+
 
     private void HandleBlastPackCharging()
     {
