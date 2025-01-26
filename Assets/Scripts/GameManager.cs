@@ -62,6 +62,7 @@ public class GameManager : MonoBehaviour
     public void StartLevel()
     {
         currentTime = 0f;
+        Time.timeScale = 1f;
         isGameActive = true;
         uiManager.ShowGameUI();
     }
@@ -69,6 +70,7 @@ public class GameManager : MonoBehaviour
     public void LevelComplete()
     {
         isGameActive = false;
+        Time.timeScale = 0f;
 
         if (currentTime < bestTime)
         {
@@ -83,6 +85,7 @@ public class GameManager : MonoBehaviour
     public void LevelFailed()
     {
         isGameActive = false;
+        Time.timeScale = 0f;
         uiManager.ShowFailureUI();
     }
 

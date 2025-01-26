@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "IndieBuff-GGJ.sln"
+    "dotnet.defaultSolution": "GGJ2025.sln"
 }
